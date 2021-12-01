@@ -1,28 +1,17 @@
 fn read_input() -> Vec<i32> {
-    return include_str!("../input").lines().map(|i| i.parse::<i32>().unwrap()).collect();
+    return include_str!("../input")
+        .lines()
+        .map(|i| i.parse::<i32>().unwrap())
+        .collect();
 }
 
 fn part1(inp: &[i32]) {
-    let mut prev = &i32::MAX;
-    let mut cnt = 0;
-    for n in inp {
-        cnt += (n > &prev) as i32;
-        prev = &n;
-    }
-    println!("{}", cnt)
+    println!("{}", inp.windows(2).filter(|p| p[1] > p[0]).count());
 }
 
 fn part2(inp: &[i32]) {
-    let mut end   = 3;
-    let mut prev = i32::MAX;
-    let mut cnt = 0;
-    while end <= inp.len() {
-        let sum = inp[(end-3)..end].iter().sum();
-        cnt += (sum > prev) as i32;
-        prev = sum;
-        end+=1;
-    }
-    println!("{}", cnt)
+    let result: Vec<i32> = inp.windows(3).map(|s| s.iter().sum()).collect();
+    part1(&result)
 }
 
 fn main() {
