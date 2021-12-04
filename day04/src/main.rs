@@ -1,3 +1,5 @@
+#![feature(drain_filter)]
+
 #[derive(Debug)]
 struct Card {
     contents: [[i32; 5]; 5],
@@ -12,15 +14,13 @@ struct Input {
 
 impl Card {
     fn sum(&self) -> i32 {
-        let mut sum = 0;
-        for y in 0..5 {
-            for x in 0..5 {
-                if !self.crossed[y][x] {
-                    sum += self.contents[y][x]
-                }
-            }
-        }
-        sum
+        self.crossed
+            .iter()
+            .flat_map(|r| r.iter())
+            .zip(self.contents.iter().flat_map(|r| r.iter()))
+            .filter(|(c, _)| !**c)
+            .map(|(_, n)| n)
+            .sum()
     }
 
     fn cross_out(&mut self, num: &i32) {
@@ -28,21 +28,17 @@ impl Card {
             for x in 0..5 {
                 if self.contents[y][x] == *num {
                     self.crossed[y][x] = true;
+                    return;
                 }
             }
         }
     }
 
     fn has_bingo(&self) -> bool {
-        for n in 0..5 {
-            if self.crossed[n].iter().all(|x| *x) {
-                return true;
-            }
-            if (0..5).map(|y| self.crossed[y][n]).all(|c| c) {
-                return true;
-            }
-        }
-        return false;
+        // Horizontal
+        self.crossed.iter().any(|r| r.iter().all(|x| *x))
+            // Vertical
+            || (0..5).any(|n| (0..5).map(|y| self.crossed[y][n]).all(|c| c))
     }
 }
 
@@ -85,23 +81,20 @@ fn part1(mut inp: Input) -> i32 {
 }
 
 fn part2(mut inp: Input) -> i32 {
-    let mut cards_left = inp.cards.len();
-    for n in inp.numbers.iter() {
-        for c in &mut inp.cards {
-            if c.has_bingo() {
-                continue;
-            }
-
-            c.cross_out(n);
-            if c.has_bingo() {
-                cards_left -= 1;
-                if cards_left == 0 {
-                    return c.sum() * n;
-                }
-            }
-        }
-    }
-    return 0;
+    let mut last_sum = 0;
+    inp.numbers
+        .iter()
+        .skip_while(|n| {
+            inp.cards.drain_filter(|c| {
+                c.cross_out(n);
+                last_sum = c.sum();
+                c.has_bingo()
+            });
+            inp.cards.len() > 0
+        })
+        .next()
+        .unwrap()
+        * last_sum
 }
 
 fn main() {
