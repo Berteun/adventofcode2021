@@ -10,6 +10,7 @@ LDAY=$(echo "0${DAY}" | sed 's#^.*\(..\)$#\1#')
 DIR="day${LDAY}"
 if [ ! -d "${DIR}" ]; then
   cargo new "${DIR}"
+  echo '/target' > ${DIR}/.gitignore
 fi;
 
 COOKIE=$(cat cookie)
