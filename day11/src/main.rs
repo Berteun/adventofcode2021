@@ -1,10 +1,8 @@
 type Board = [[i32; 10]; 10];
 
 fn inc(x: i32, y: i32, board: &mut Board) {
-    if x >= 0 && x < 10 && y >= 0 && y < 10 {
-        if board[y as usize][x as usize] > 0 {
-            board[y as usize][x as usize] += 1;
-        }
+    if x >= 0 && x < 10 && y >= 0 && y < 10 && board[y as usize][x as usize] > 0 {
+        board[y as usize][x as usize] += 1;
     }
 }
 
@@ -19,6 +17,7 @@ fn inc_neighbours(x: i32, y: i32, board: &mut Board) {
     }
 }
 
+#[allow(dead_code)]
 fn print_board(inp: &Board) {
     for row in inp {
         println!("{}", row.map(|i| i.to_string()).join(""))
