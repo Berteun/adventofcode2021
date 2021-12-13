@@ -52,6 +52,7 @@ fn fold_x(grid: &mut Grid, x: usize) {
                 grid[y][2 * x - p] = 1;
             }
         }
+        grid[y].truncate(x)
     }
 }
 
@@ -64,6 +65,7 @@ fn fold_y(grid: &mut Grid, y: usize) {
             }
         }
     }
+    grid.truncate(y)
 }
 
 fn fold(grid: &mut Grid, fold: &(usize, usize)) {
@@ -78,48 +80,32 @@ fn count_dots(grid: &Grid) -> i32 {
     grid.iter().map(|r| r.iter().sum::<i32>()).sum()
 }
 
-fn print_grid(grid: &Grid) {
-    for (i, r) in grid.iter().enumerate() {
-        println!(
-            "{}",
-            r[..40]
-                .iter()
-                .map(|n| if *n == 1 { '#' } else { '.' })
-                .collect::<String>()
-        );
-        if i > 4 {
-            break;
-        }
-    }
-    println!("")
+fn print_grid(grid: &Grid) -> String {
+    grid.iter()
+        .map(|r| r.iter().map(|n| if *n == 1 { '#' } else { '.' }).collect())
+        .collect::<Vec<String>>()
+        .join("\n")
 }
 
-fn part_1(inp: (Grid, Folds)) -> i32 {
-    let mut grid = inp.0;
-    let folds = inp.1;
-    fold(&mut grid, &folds[0]);
-    count_dots(&grid)
+fn part_1(mut inp: (Grid, Folds)) -> i32 {
+    fold(&mut inp.0, &inp.1[0]);
+    count_dots(&inp.0)
 }
 
-fn part_2(inp: (Grid, Folds)) {
-    let mut grid = inp.0;
-    let folds = inp.1;
-    for f in folds {
-        fold(&mut grid, &f);
-    }
-    print_grid(&grid);
+fn part_2(mut inp: (Grid, Folds)) -> String {
+    inp.1.iter().for_each(|f| fold(&mut inp.0, f));
+    print_grid(&inp.0)
 }
 
 fn read_input() -> (Grid, Folds) {
     let mut parts = include_str!("../input").split("\n\n");
-    let dots = parts.next().expect("cannot find coordinates in input");
-    let grid = parse_grid(dots);
-    let folds = parts.next().expect("cannot find folds in input");
-    let fold_list = parse_folds(folds);
-    (grid, fold_list)
+    (
+        parse_grid(parts.next().expect("cannot find coordinates in input")),
+        parse_folds(parts.next().expect("cannot find folds in input")),
+    )
 }
 
 fn main() {
     println!("{}", part_1(read_input()));
-    part_2(read_input());
+    println!("{}", part_2(read_input()));
 }
