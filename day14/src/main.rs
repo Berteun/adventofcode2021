@@ -17,31 +17,55 @@ fn parse_rules(rules: &str) -> HashMap<String, char> {
         .collect()
 }
 
-fn apply_rules(polymer: Vec<char>, rules: &HashMap<String, char>) -> Vec<char> {
-  let mut output = vec![];
-  output.push(polymer[0]);
-  polymer.windows(2).for_each(|w| {
-    output.push(*rules.get(&String::from_iter(w.iter())).unwrap());
-    output.push(w[1]);
+fn count2(polymer: &Vec<char>, count_map: HashMap<String, i64>) -> i64 {
+  let mut counts: HashMap<char, i64> = HashMap::new();
+  count_map.iter().for_each(|(s,c)| {
+    let chs: Vec<char> = s.chars().collect();
+    *counts.entry(chs[0]).or_insert(0) += c;
+    *counts.entry(chs[1]).or_insert(0) += c;
   });
-  output
-}
 
-fn count(polymer: &Vec<char>) -> i32 {
-  let mut counts: HashMap<char, i32> = HashMap::new();
-  polymer.iter().for_each(|c| *counts.entry(*c).or_insert(0) += 1);
-  let mut v: Vec<i32> = counts.values().map(|i| *i).collect();
+  *counts.get_mut(&polymer[0]).unwrap() += 1;
+  *counts.get_mut(&polymer[polymer.len() - 1]).unwrap() += 1;
+
+  let mut v: Vec<i64> = counts.values().map(|i| *i).collect();
   v.sort();
-  v[v.len() - 1 as usize] - v[0]
+  v[v.len() - 1 as usize]/2 - v[0]/2
 }
 
-fn part_1(inp: (Vec<char>, HashMap<String, char>)) -> i32 {
-  let mut polymer = inp.0;
+fn apply_rules_2(counts: HashMap<String, i64>, rules: &HashMap<String, char>) -> HashMap<String, i64> {
+  let mut deltas: HashMap<String, i64> = HashMap::new();
+  for (w, c) in counts.iter() {
+    let r = *rules.get(w).unwrap();
+    let chs: Vec<char> = w.chars().collect();
+    let r1: String = [chs[0], r].iter().collect();
+    let r2: String = [r, chs[1]].iter().collect();
+    *deltas.entry(r1).or_insert(0) += c;
+    *deltas.entry(r2).or_insert(0) += c;
+  }   
+  deltas
+}
+
+fn part_n(inp: (Vec<char>, HashMap<String, char>), iter: i32) -> i64 {
+  let mut count_map: HashMap<String, i64> = HashMap::new();
   let table = inp.1;
-  for _ in 0..10 {
-    polymer = apply_rules(polymer, &table);
+  inp.0.windows(2).for_each(|w| {
+    *count_map.entry(String::from_iter(w.iter())).or_insert(0) += 1;
+  });
+
+  for _ in 0..iter {
+    count_map = apply_rules_2(count_map, &table);
   }
-  count(&polymer)
+
+  count2(&inp.0, count_map)
+}
+
+fn part_2(inp: (Vec<char>, HashMap<String, char>)) -> i64 {
+  part_n(inp, 40)
+}
+
+fn part_1(inp: (Vec<char>, HashMap<String, char>)) -> i64 {
+  part_n(inp, 10)
 }
 
 fn read_input() -> (Vec<char>, HashMap<String, char>) {
@@ -54,5 +78,5 @@ fn read_input() -> (Vec<char>, HashMap<String, char>) {
 
 fn main() {
     println!("{}", part_1(read_input()));
-    //println!("{}", part_2(read_input()));
+    println!("{}", part_2(read_input()));
 }
