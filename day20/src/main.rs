@@ -89,6 +89,7 @@ fn part1(mut problem: Problem) -> i32 {
 
 fn part2(mut problem: Problem) -> i32 {
   for it in 0..50 {
+    // This is tricky and works only for the example input
     problem = iterate(&problem, it % 2 == 1);
   }
   problem.image.iter().filter(|(_, state)| **state ).count() as i32
